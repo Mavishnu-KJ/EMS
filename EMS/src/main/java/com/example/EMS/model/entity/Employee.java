@@ -19,6 +19,14 @@ public class Employee {
     public Employee() {
     }
 
+    public Employee(Long id, String name, int salary, String department, String email) {
+        this.id = id;
+        this.name = name;
+        this.salary = salary;
+        this.department = department;
+        this.email = email;
+    }
+
     public Long getId() {
         return id;
     }
