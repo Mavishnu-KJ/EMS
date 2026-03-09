@@ -8,7 +8,7 @@ public class EmployeeRequestDto {
 
     @NotBlank
     private String name;
-    @Positive
+    @Positive(message = "salary must be greater than 0")
     private int salary;
     private String department;
     @Email
