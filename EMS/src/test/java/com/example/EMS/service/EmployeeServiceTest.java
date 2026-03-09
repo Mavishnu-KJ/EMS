@@ -32,7 +32,6 @@ public class EmployeeServiceTest {
     ModelMapper modelMapper;
 
     private EmployeeRequestDto employeeRequestDto;
-    private EmployeeRequestDto invalidEmployeeRequestDto;
     private EmployeeResponseDto employeeResponseDto;
     private Employee employee;
     private Employee savedEmployee;
@@ -43,13 +42,6 @@ public class EmployeeServiceTest {
         //Prepare request Dto
         employeeRequestDto = new EmployeeRequestDto(
                 "Sachin",
-                888888,
-                "Cricket",
-                "sachin@gmail.com"
-        );
-
-        invalidEmployeeRequestDto = new EmployeeRequestDto(
-                "",
                 888888,
                 "Cricket",
                 "sachin@gmail.com"
