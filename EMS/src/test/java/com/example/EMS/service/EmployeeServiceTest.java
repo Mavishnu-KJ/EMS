@@ -1,10 +1,11 @@
 package com.example.EMS.service;
 
+import com.example.EMS.exceptions.DuplicateEmailException;
 import com.example.EMS.model.dto.EmployeeRequestDto;
 import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.model.entity.Employee;
 import com.example.EMS.repository.EmployeeRepository;
-import org.aspectj.lang.annotation.Before;
+import jakarta.validation.ConstraintDeclarationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -12,10 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class EmployeeServiceTest {
@@ -30,6 +32,7 @@ public class EmployeeServiceTest {
     ModelMapper modelMapper;
 
     private EmployeeRequestDto employeeRequestDto;
+    private EmployeeRequestDto invalidEmployeeRequestDto;
     private EmployeeResponseDto employeeResponseDto;
     private Employee employee;
     private Employee savedEmployee;
@@ -40,6 +43,13 @@ public class EmployeeServiceTest {
         //Prepare request Dto
         employeeRequestDto = new EmployeeRequestDto(
                 "Sachin",
+                888888,
+                "Cricket",
+                "sachin@gmail.com"
+        );
+
+        invalidEmployeeRequestDto = new EmployeeRequestDto(
+                "",
                 888888,
                 "Cricket",
                 "sachin@gmail.com"
@@ -65,7 +75,7 @@ public class EmployeeServiceTest {
     }
 
     @Test
-    void testAddEmployee(){
+    void testAddEmployee_Success(){
 
         //Mock service inner method calls
         when(employeeRepository.existsByEmail(employeeRequestDto.getEmail())).thenReturn(false);
@@ -88,6 +98,41 @@ public class EmployeeServiceTest {
         verify(employeeRepository).save(employee);
         verify(modelMapper).map(employeeRequestDto, Employee.class);
         verify(modelMapper).map(employee, EmployeeResponseDto.class);
+
+    }
+
+    /*
+    @Test
+    void testAddEmployee_ValidationFailure(){
+
+        //Perform request with invalid Dto
+        assertThatThrownBy(() -> employeeService.addEmployee(invalidEmployeeRequestDto))
+
+                .isInstanceOf(ConstraintDeclarationException.class); //Some times ConstraintViolationException
+                //.hasMessageContaining("Name must not be blank");
+
+        //Verify
+        verify(employeeRepository, never()).existsByEmail(employeeRequestDto.getEmail());
+        verify(employeeRepository, never()).save(employee);
+
+    }
+    */
+
+    @Test
+    void testAddEmployee_BusinessThrowsException(){
+
+        //Mock service inner method calls to throw business exception
+        when(employeeRepository.existsByEmail(employeeRequestDto.getEmail())).thenReturn(true);
+
+        //Perform request
+        assertThatThrownBy(()->employeeService.addEmployee(employeeRequestDto))
+
+                .isInstanceOf(DuplicateEmailException.class)
+                .hasMessageContaining("Email already exists");
+
+        //Verify the interactions
+        verify(employeeRepository).existsByEmail(employeeRequestDto.getEmail());
+        verify(employeeRepository, never()).save(employee);
 
     }
 
