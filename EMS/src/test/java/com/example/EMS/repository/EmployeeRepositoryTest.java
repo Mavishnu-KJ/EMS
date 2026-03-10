@@ -1,5 +1,6 @@
 package com.example.EMS.repository;
 
+import com.example.EMS.model.dto.EmployeeRequestDto;
 import com.example.EMS.model.entity.Employee;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,18 @@ public class EmployeeRepositoryTest {
     @Test
     public void testExistsByEmail_False(){
 
-        boolean exists = employeeRepository.existsByEmail("nonexistingemail@gmail.com");
-        assertThat(exists).isFalse();
+        //Prepare input
+        EmployeeRequestDto employeeRequestDto = new EmployeeRequestDto(
+                "Sachin",
+                888888,
+                "Cricket",
+                "sachin@gmail.com"
+        );
 
+        //Perform
+        boolean exists = employeeRepository.existsByEmail(employeeRequestDto.getEmail());
+
+        assertThat(exists).isFalse();
     }
 
     @Test
