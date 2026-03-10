@@ -5,7 +5,6 @@ import com.example.EMS.model.dto.EmployeeRequestDto;
 import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.model.entity.Employee;
 import com.example.EMS.repository.EmployeeRepository;
-import jakarta.validation.ConstraintDeclarationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -93,25 +92,8 @@ public class EmployeeServiceTest {
 
     }
 
-    /*
     @Test
-    void testAddEmployee_ValidationFailure(){
-
-        //Perform request with invalid Dto
-        assertThatThrownBy(() -> employeeService.addEmployee(invalidEmployeeRequestDto))
-
-                .isInstanceOf(ConstraintDeclarationException.class); //Some times ConstraintViolationException
-                //.hasMessageContaining("Name must not be blank");
-
-        //Verify
-        verify(employeeRepository, never()).existsByEmail(employeeRequestDto.getEmail());
-        verify(employeeRepository, never()).save(employee);
-
-    }
-    */
-
-    @Test
-    void testAddEmployee_BusinessThrowsException(){
+    void testAddEmployee_ServiceThrowsException(){
 
         //Mock service inner method calls to throw business exception
         when(employeeRepository.existsByEmail(employeeRequestDto.getEmail())).thenReturn(true);
