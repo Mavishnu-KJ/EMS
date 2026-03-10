@@ -53,4 +53,24 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    //NOTE : If validation fails → MethodArgumentNotValidException (for @Valid @RequestBody)
+    // or ConstraintViolationException (for @Valid @PathVariable/@RequestParam)
+    @ExceptionHandler(ConstraintViolationException.class)
+    ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException e){
+
+        List<String> errorList = e.getConstraintViolations().stream()
+                .map(err -> err.getPropertyPath() + " : " +err.getMessage())
+                .toList();
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                errorList,
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+    }
+
 }
