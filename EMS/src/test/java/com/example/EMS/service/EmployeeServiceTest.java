@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -201,6 +202,47 @@ public class EmployeeServiceTest {
         //Verify the interactions
         verify(employeeRepository).existsByEmail(employeeRequestDto.getEmail());
         verify(employeeRepository, never()).saveAll(employeeList);
+    }
+
+    @Test
+    void testGetEmployeeById_Success(){
+        //Prepare request
+        Long id = 10L;
+
+        //Mock service inner method calls
+        when(employeeRepository.findById(anyLong())).thenReturn(Optional.ofNullable(employee));
+        when(modelMapper.map(employee, EmployeeResponseDto.class)).thenReturn(employeeResponseDto);
+
+        //Perform
+        EmployeeResponseDto result = employeeService.getEmployeeById(anyLong());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(10);
+        assertThat(result.getName()).isEqualTo("Sachin");
+
+        //Verify the interactions
+        verify(employeeRepository).findById(anyLong());
+        verify(modelMapper).map(employee, EmployeeResponseDto.class);
+
+    }
+
+    @Test
+    void testGetEmployeeById_ServiceThrowsException(){
+        //Prepare request
+        Long id = 10L;
+
+        //Mock service inner method calls
+        when(employeeRepository.findById(anyLong())).thenThrow(new ResourceNotFoundException("Resource not found for : "+id));
+
+        //Perform
+        assertThatThrownBy(()->employeeService.getEmployeeById(anyLong()))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Resource not found");
+
+        //Verify the interactions
+        verify(employeeRepository).findById(anyLong());
+        verify(modelMapper, never()).map(employee, EmployeeResponseDto.class);
+
     }
 
 

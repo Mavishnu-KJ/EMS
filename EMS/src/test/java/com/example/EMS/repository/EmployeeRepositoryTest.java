@@ -1,6 +1,7 @@
 package com.example.EMS.repository;
 
 import com.example.EMS.model.dto.EmployeeRequestDto;
+import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.model.entity.Employee;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -101,6 +103,39 @@ public class EmployeeRepositoryTest {
            assertThat(emp).isNotNull();
            assertThat(emp.getId()).isNotNull();
         }
+
+    }
+
+    @Test
+    public void testFindById_Success(){
+        //Prepare input and save all
+        Employee employee1 = new Employee();
+        employee1.setName("Virat");
+        employee1.setSalary(555555);
+        employee1.setDepartment("Cricket");
+        employee1.setEmail("virat@gmail.com");
+
+        Employee employee2 = new Employee();
+        employee2.setName("Rohit");
+        employee2.setSalary(555555);
+        employee2.setDepartment("Cricket");
+        employee2.setEmail("rohit@gmail.com");
+
+        //Use either repository save or testEntityManager flush
+        Employee savedEmployee1 = testEntityManager.persistFlushFind(employee1);
+        Employee savedEmployee2 = testEntityManager.persistFlushFind(employee2);
+
+        //Perform
+        Optional<Employee> foundEmployee1 = employeeRepository.findById(savedEmployee1.getId());
+        Optional<Employee> foundEmployee2 = employeeRepository.findById(savedEmployee2.getId());
+
+        assertThat(foundEmployee1).isPresent();
+        assertThat(foundEmployee1.get().getName()).isEqualTo("Virat");
+        assertThat(foundEmployee1.get().getId()).isEqualTo(savedEmployee1.getId()); // verify ID match
+
+        assertThat(foundEmployee2).isPresent();
+        assertThat(foundEmployee2.get().getName()).isEqualTo("Rohit");
+        assertThat(foundEmployee2.get().getId()).isEqualTo(savedEmployee2.getId()); // verify ID match
 
     }
 
