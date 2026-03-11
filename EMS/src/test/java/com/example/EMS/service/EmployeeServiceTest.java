@@ -1,6 +1,7 @@
 package com.example.EMS.service;
 
 import com.example.EMS.exceptions.DuplicateEmailException;
+import com.example.EMS.exceptions.ResourceNotFoundException;
 import com.example.EMS.model.dto.EmployeeRequestDto;
 import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.model.entity.Employee;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -109,5 +112,96 @@ public class EmployeeServiceTest {
         verify(employeeRepository, never()).save(employee);
 
     }
+
+    @Test
+    void testAddEmployees_Success(){
+
+        //Prepare request Dto list
+        List<EmployeeRequestDto> employeeRequestDtoList = List.of(
+                employeeRequestDto
+        );
+        List<Employee> employeeList = List.of(employee);
+
+        //Mock service inner method calls
+        when(employeeRepository.existsByEmail(employeeRequestDto.getEmail())).thenReturn(false);
+        when(employeeRepository.saveAll(employeeList)).thenReturn(employeeList);
+        when(modelMapper.map(employeeRequestDto, Employee.class)).thenReturn(employee);
+        when(modelMapper.map(employee, EmployeeResponseDto.class)).thenReturn(employeeResponseDto);
+
+        //Perform
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeService.addEmployees(employeeRequestDtoList);
+
+        assertThat(employeeResponseDtoList).isNotNull();
+        assertThat(employeeResponseDtoList.getFirst().getName()).isEqualTo("Sachin");
+
+        //Verify the interactions
+        verify(employeeRepository).existsByEmail(employeeRequestDto.getEmail());
+        verify(employeeRepository).saveAll(employeeList);
+        verify(modelMapper).map(employeeRequestDto, Employee.class);
+        verify(modelMapper).map(employee, EmployeeResponseDto.class);
+
+    }
+
+    @Test
+    void testAddEmployees_ServiceThrowsException(){
+
+        //Prepare request Dto list
+        List<EmployeeRequestDto> employeeRequestDtoList = List.of();
+
+        assertThatThrownBy(()->employeeService.addEmployees(employeeRequestDtoList))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("empty");
+
+        //Verify the interactions
+        verify(employeeRepository, never()).existsByEmail(employeeRequestDto.getEmail());
+        verify(employeeRepository, never()).save(employee);
+
+    }
+
+    @Test //DuplicateEmailException
+    void testAddEmployees_ServiceThrowsException1(){
+        //Prepare request Dto list
+        List<EmployeeRequestDto> employeeRequestDtoList = List.of(
+                employeeRequestDto
+        );
+
+        List<Employee> employeeList = List.of(employee);
+
+        //Mock service inner method calls
+        when(employeeRepository.existsByEmail(employeeRequestDto.getEmail())).thenReturn(true);
+
+        //Perform
+        assertThatThrownBy(()->employeeService.addEmployees(employeeRequestDtoList))
+                .isInstanceOf(DuplicateEmailException.class)
+                .hasMessageContaining("already exists");
+
+        //Verify the interactions
+        verify(employeeRepository).existsByEmail(employeeRequestDto.getEmail());
+        verify(employeeRepository, never()).saveAll(employeeList);
+    }
+
+    @Test //DuplicateEmailException in the request itself
+    void testAddEmployees_ServiceThrowsException2(){
+        //Prepare request Dto list
+        List<EmployeeRequestDto> employeeRequestDtoList = List.of(
+                employeeRequestDto,
+                employeeRequestDto
+        );
+
+        List<Employee> employeeList = List.of(employee);
+
+        //Mock service inner method calls
+        when(employeeRepository.existsByEmail(employeeRequestDto.getEmail())).thenReturn(false);
+
+        //Perform
+        assertThatThrownBy(()->employeeService.addEmployees(employeeRequestDtoList))
+                .isInstanceOf(DuplicateEmailException.class)
+                .hasMessageContaining("Duplicate email in the request itself");
+
+        //Verify the interactions
+        verify(employeeRepository).existsByEmail(employeeRequestDto.getEmail());
+        verify(employeeRepository, never()).saveAll(employeeList);
+    }
+
 
 }
