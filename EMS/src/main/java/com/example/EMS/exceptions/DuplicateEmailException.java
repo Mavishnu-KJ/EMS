@@ -7,11 +7,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class DuplicateEmailException extends RuntimeException{
 
     public DuplicateEmailException(){
-        super("Email already exists");
+        super("Email already exists in DB");
     }
 
     public DuplicateEmailException(String email){
-        super("Email already exists : "+email);
+        super("Email already exists in DB: "+email);
+    }
+
+    public DuplicateEmailException(String customMessage, String email){
+        super(customMessage+ " : " +email);
     }
 
     public DuplicateEmailException(String cause, Throwable throwable){

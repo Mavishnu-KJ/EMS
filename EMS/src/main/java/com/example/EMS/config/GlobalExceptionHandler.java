@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -46,6 +47,23 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation Failed",
+                errorList,
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //handler for list of objects (eg. /addEmployees) - sometimes the exception might be BindException
+    @ExceptionHandler(BindException.class)
+    ResponseEntity<ErrorResponse> handleBindException(BindException e){
+        List<String> errorList = e.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + " : " +err.getDefaultMessage())
+                .toList();
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Binding Validation Failed",
                 errorList,
                 LocalDateTime.now()
         );

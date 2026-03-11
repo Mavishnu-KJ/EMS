@@ -47,7 +47,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/addEmployees")
-    ResponseEntity<List<EmployeeResponseDto>> addEmployees(@Valid @RequestBody List<EmployeeRequestDto> employeeRequestDtoList){
+    ResponseEntity<List<EmployeeResponseDto>> addEmployees(@Valid @RequestBody List< @Valid EmployeeRequestDto> employeeRequestDtoList){
         logger.info("addEmployees, employeeRequestDtoList is {}", employeeRequestDtoList);
 
         List<EmployeeResponseDto> employeeResponseDtoList = employeeService.addEmployees(employeeRequestDtoList);

@@ -1,6 +1,7 @@
 package com.example.EMS.service.impl;
 
 import com.example.EMS.exceptions.DuplicateEmailException;
+import com.example.EMS.exceptions.ResourceNotFoundException;
 import com.example.EMS.model.dto.EmployeeRequestDto;
 import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.model.entity.Employee;
@@ -13,7 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -58,16 +61,22 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<EmployeeResponseDto> addEmployees(List<EmployeeRequestDto> employeeRequestDtoList){
         logger.info("addEmployees, employeeRequestDtoList is {}", employeeRequestDtoList);
 
+        if(employeeRequestDtoList == null || employeeRequestDtoList.isEmpty()){
+            throw new ResourceNotFoundException("Input request is empty/null");
+        }
+
         //Map employee request dto to employee
         List<Employee> employeeList = new ArrayList<>();
+        Set<String> seenEmailSet = new HashSet<>();
+        ArrayList<String> duplicateEmailListInTheRequestDto =new ArrayList<>();
         ArrayList<String> duplicateEmailList =new ArrayList<>();
-        //System.out.println("duplicateEmailList is Empty ? "+duplicateEmailList.isEmpty()); //true
 
         for(EmployeeRequestDto employeeRequestDto : employeeRequestDtoList){
-
             if(employeeRequestDto != null && !employeeRequestDto.getEmail().isBlank()){
-                //Validate email
-                if(employeeRepository.existsByEmail(employeeRequestDto.getEmail())){
+                //Ensure there is no duplicate email
+                if(!seenEmailSet.add(employeeRequestDto.getEmail())){ // seenEmailSet.add(employeeRequestDto.email() returns true after addition, else false without adding, HashSet does not allow dupllicates
+                    duplicateEmailListInTheRequestDto.add(employeeRequestDto.getEmail());
+                }else if(employeeRepository.existsByEmail(employeeRequestDto.getEmail())){ //Validate email with db records
                     duplicateEmailList.add(employeeRequestDto.getEmail());
                 }else if(duplicateEmailList.isEmpty()){ //Add only if there is no even one duplicate email
                     employeeList.add(modelMapper.map(employeeRequestDto, Employee.class));
@@ -76,7 +85,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         logger.info("addEmployees, employeeList is {}", employeeList);
 
-        //Throw duplicate email exception if the existing email list is not empty
+        //Throw duplicate email exception
+        if(!duplicateEmailListInTheRequestDto.isEmpty()){
+            logger.info("addEmployees, duplicateEmailListInTheRequestDto is {}", duplicateEmailListInTheRequestDto);
+            throw new DuplicateEmailException("Duplicate email in the request itself", duplicateEmailListInTheRequestDto.toString());
+        }
+
         if (!duplicateEmailList.isEmpty()) {
             logger.info("addEmployees, duplicateEmailList is {}", duplicateEmailList);
             throw new DuplicateEmailException(duplicateEmailList.toString());
