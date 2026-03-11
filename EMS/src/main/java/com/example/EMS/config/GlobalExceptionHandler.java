@@ -73,4 +73,20 @@ public class GlobalExceptionHandler {
 
     }
 
+    //eg. GetMapping("/api/employees/{id}", /api/employees/abc)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e){
+
+        List<String> errorList = List.of("Invalid parameter : "+e.getName()+" Expected type "+e.getRequiredType().getSimpleName() +" but, got "+e.getValue());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Type mismatch",
+                errorList,
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+    }
+
 }

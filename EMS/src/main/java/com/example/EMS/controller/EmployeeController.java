@@ -7,6 +7,7 @@ import com.example.EMS.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -43,5 +45,21 @@ public class EmployeeController {
 
         return ResponseEntity.created(location).body(employeeAdded);
     }
+
+    @PostMapping("/addEmployees")
+    ResponseEntity<List<EmployeeResponseDto>> addEmployees(@Valid @RequestBody List<EmployeeRequestDto> employeeRequestDtoList){
+        logger.info("addEmployees, employeeRequestDtoList is {}", employeeRequestDtoList);
+
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeService.addEmployees(employeeRequestDtoList);
+        logger.info("addEmployees, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .build()
+                .toUri();
+
+        return ResponseEntity.created(location).body(employeeResponseDtoList);
+    }
+
 
 }

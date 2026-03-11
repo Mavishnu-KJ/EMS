@@ -6,12 +6,14 @@ import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.model.entity.Employee;
 import com.example.EMS.repository.EmployeeRepository;
 import com.example.EMS.service.EmployeeService;
-import jakarta.validation.Valid;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -27,6 +29,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional
     public EmployeeResponseDto addEmployee(EmployeeRequestDto employeeRequestDto){
         logger.info("addEmployee, employeeRequestDto is {}", employeeRequestDto);
 
@@ -49,5 +52,51 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeResponseDto;
 
     }
+
+    @Override
+    @Transactional
+    public List<EmployeeResponseDto> addEmployees(List<EmployeeRequestDto> employeeRequestDtoList){
+        logger.info("addEmployees, employeeRequestDtoList is {}", employeeRequestDtoList);
+
+        //Map employee request dto to employee
+        List<Employee> employeeList = new ArrayList<>();
+        ArrayList<String> duplicateEmailList =new ArrayList<>();
+        //System.out.println("duplicateEmailList is Empty ? "+duplicateEmailList.isEmpty()); //true
+
+        for(EmployeeRequestDto employeeRequestDto : employeeRequestDtoList){
+
+            if(employeeRequestDto != null && !employeeRequestDto.getEmail().isBlank()){
+                //Validate email
+                if(employeeRepository.existsByEmail(employeeRequestDto.getEmail())){
+                    duplicateEmailList.add(employeeRequestDto.getEmail());
+                }else if(duplicateEmailList.isEmpty()){ //Add only if there is no even one duplicate email
+                    employeeList.add(modelMapper.map(employeeRequestDto, Employee.class));
+                }
+            }
+        }
+        logger.info("addEmployees, employeeList is {}", employeeList);
+
+        //Throw duplicate email exception if the existing email list is not empty
+        if (!duplicateEmailList.isEmpty()) {
+            logger.info("addEmployees, duplicateEmailList is {}", duplicateEmailList);
+            throw new DuplicateEmailException(duplicateEmailList.toString());
+        }
+
+        //Save
+        List<Employee> savedEmployeeList = employeeRepository.saveAll(employeeList);
+        logger.info("addEmployees, savedEmployeeList is {}", savedEmployeeList);
+
+        //Map employee to employee response dto
+        List<EmployeeResponseDto> employeeResponseDtoList = new ArrayList<>();
+
+        for(Employee emp : savedEmployeeList){
+            employeeResponseDtoList.add(modelMapper.map(emp, EmployeeResponseDto.class));
+        }
+        logger.info("addEmployees, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        return employeeResponseDtoList;
+
+    }
+
 
 }
