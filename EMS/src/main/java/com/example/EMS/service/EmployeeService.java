@@ -10,4 +10,9 @@ public interface EmployeeService {
     EmployeeResponseDto addEmployee(EmployeeRequestDto employeeRequestDto);
     List<EmployeeResponseDto> addEmployees(List<EmployeeRequestDto> employeeRequestDtoList);
 
+    EmployeeResponseDto getEmployeeById(Long id);
+    List<EmployeeResponseDto> getAllEmployees();
+
+    EmployeeResponseDto searchEmployeeById(Long id);
+
 }

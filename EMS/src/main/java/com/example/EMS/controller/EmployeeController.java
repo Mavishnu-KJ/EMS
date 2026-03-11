@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -59,6 +56,38 @@ public class EmployeeController {
                 .toUri();
 
         return ResponseEntity.created(location).body(employeeResponseDtoList);
+    }
+
+    @GetMapping("{id}") //http://localhost:8080/api/employees/12
+    ResponseEntity<EmployeeResponseDto> getEmployeeById(@PathVariable("id") Long id){
+        logger.info("getEmployeeById, id is {}", id);
+
+        EmployeeResponseDto employeeResponseDto = employeeService.getEmployeeById(id);
+        logger.info("getEmployeeById, employeeResponseDto is {}", employeeResponseDto);
+
+        return ResponseEntity.ok(employeeResponseDto);
+
+    }
+
+    @GetMapping
+    ResponseEntity<List<EmployeeResponseDto>> getAllEmployees(){
+        logger.info("getAllEmployees");
+
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeService.getAllEmployees();
+        logger.info("getAllEmployees, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        return ResponseEntity.ok(employeeResponseDtoList);
+    }
+
+    @GetMapping("searchEmployeeById") //http://localhost:8080/api/employees/searchEmployeeById?id={id}
+    ResponseEntity<EmployeeResponseDto> searchEmployeeById(@RequestParam("id") Long id){
+        logger.info("searchEmployeeById, id is {}", id);
+
+        EmployeeResponseDto employeeResponseDto = employeeService.searchEmployeeById(id);
+        logger.info("searchEmployeeById, employeeResponseDto is {}", employeeResponseDto);
+
+        return ResponseEntity.ok(employeeResponseDto);
+
     }
 
 

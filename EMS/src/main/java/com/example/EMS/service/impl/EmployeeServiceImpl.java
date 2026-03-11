@@ -8,9 +8,11 @@ import com.example.EMS.model.entity.Employee;
 import com.example.EMS.repository.EmployeeRepository;
 import com.example.EMS.service.EmployeeService;
 import jakarta.transaction.Transactional;
+import org.hibernate.sql.results.graph.embeddable.EmbeddableLoadingLogger;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateProperties;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -109,6 +111,56 @@ public class EmployeeServiceImpl implements EmployeeService {
         logger.info("addEmployees, employeeResponseDtoList is {}", employeeResponseDtoList);
 
         return employeeResponseDtoList;
+
+    }
+
+    @Override
+    public EmployeeResponseDto getEmployeeById(Long id){
+        logger.info("getEmployeeById, id is {}", id);
+
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Resource not found for the given id : "+id));
+        logger.info("getEmployeeById, employee is {}", employee);
+
+        //Map employee to employee response dto
+        EmployeeResponseDto employeeResponseDto = modelMapper.map(employee, EmployeeResponseDto.class);
+        logger.info("getEmployeeById, employeeResponseDto is {}", employeeResponseDto);
+
+        return employeeResponseDto;
+
+    }
+
+    @Override
+    public List<EmployeeResponseDto> getAllEmployees(){
+        logger.info("getAllEmployees");
+
+        List<Employee> employeeList = employeeRepository.findAll();
+        logger.info("getAllEmployees, employeeList is {}", employeeList);
+
+        //Map employee to employee response dto
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeList.stream()
+                        .map(emp -> modelMapper.map(emp, EmployeeResponseDto.class))
+                        .toList();
+
+        logger.info("getAllEmployees, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        return employeeResponseDtoList;
+
+    }
+
+    @Override
+    public EmployeeResponseDto searchEmployeeById(Long id){
+        logger.info("searchEmployeeById, id is {}", id);
+
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found for the given id : "+id));
+        logger.info("searchEmployeeById, employee is {}", employee);
+
+        //Map employee to employee response dto
+        EmployeeResponseDto employeeResponseDto = modelMapper.map(employee, EmployeeResponseDto.class);
+        logger.info("searchEmployeeById, employeeResponseDto is {}", employeeResponseDto);
+
+        return employeeResponseDto;
 
     }
 

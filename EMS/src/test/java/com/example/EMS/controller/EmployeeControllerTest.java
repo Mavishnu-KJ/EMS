@@ -20,6 +20,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -187,4 +188,76 @@ public class EmployeeControllerTest {
         verify(employeeService, times(1)).addEmployees(anyList());
 
     }
+
+    @Test
+    public void testGetEmployeeById_Success() throws Exception{
+        //Prepare request
+        Long id = 10L;
+
+        //Prepare expected response dto
+        EmployeeResponseDto employeeResponseDto = new EmployeeResponseDto(
+                10L,
+                "Sachin",
+                888888,
+                "Cricket",
+                "sachin@gmail.com"
+        );
+
+        //Mock service behavior
+        when(employeeService.getEmployeeById(anyLong())).thenReturn(employeeResponseDto);
+
+        //Perform GET request
+        mockMvc.perform(get("/api/employees/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.name").value("Sachin"));
+
+        //Verify the service was called once
+        verify(employeeService, times(1)).getEmployeeById(id);
+
+    }
+
+    @Test
+    public void testGetEmployeeById_ValidationFailure() throws Exception {
+
+        //Prepare invalid input
+        String id = "abc";
+
+        //Perform GET request
+        mockMvc.perform(get("/api/employees/{id}", id))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("shortSummaryMessage").value("Type mismatch"))
+                .andExpect(jsonPath("$.errorList").isArray())
+                .andExpect(jsonPath("$.errorList").isNotEmpty())
+                .andExpect(jsonPath("$.errorList[0]").value(containsString("Invalid parameter")));
+
+        //Verify the service was never called
+        verify(employeeService, never()).getEmployeeById(anyLong());
+
+    }
+
+    @Test
+    public void testGetEmployeeById_ServiceThrowsException() throws Exception{
+
+        //Prepare request
+        Long id = 10L;
+
+        //Mock service behavior
+        when(employeeService.getEmployeeById(anyLong())).thenThrow(new ResourceNotFoundException("Resource not found for : "+id));
+
+        //Perform GET request
+        mockMvc.perform(get("/api/employees/{id}", id))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.shortSummaryMessage").value("Resource Not Found"))
+                .andExpect(jsonPath("$.errorList").isArray())
+                .andExpect(jsonPath("$.errorList").isNotEmpty())
+                .andExpect(jsonPath("$.errorList[0]").value(containsString("Resource not found")));
+
+        //Verify the service was called once
+        verify(employeeService, times(1)).getEmployeeById(anyLong());
+
+    }
+
+
+
 }
