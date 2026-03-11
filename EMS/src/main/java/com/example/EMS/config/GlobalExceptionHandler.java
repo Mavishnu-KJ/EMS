@@ -1,6 +1,7 @@
 package com.example.EMS.config;
 
 import com.example.EMS.exceptions.DuplicateEmailException;
+import com.example.EMS.exceptions.ResourceNotFoundException;
 import com.example.EMS.model.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -105,6 +106,20 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e){
+        List<String> errorList = List.of(e.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "Resource Not Found",
+                errorList,
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
 }

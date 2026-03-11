@@ -61,8 +61,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<EmployeeResponseDto> addEmployees(List<EmployeeRequestDto> employeeRequestDtoList){
         logger.info("addEmployees, employeeRequestDtoList is {}", employeeRequestDtoList);
 
-        if(employeeRequestDtoList == null || employeeRequestDtoList.isEmpty()){
-            throw new ResourceNotFoundException("Input request is empty/null");
+        if(employeeRequestDtoList.isEmpty()){
+            throw new ResourceNotFoundException("Input request is empty");
         }
 
         //Map employee request dto to employee
