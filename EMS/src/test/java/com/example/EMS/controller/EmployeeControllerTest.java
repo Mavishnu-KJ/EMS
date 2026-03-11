@@ -258,6 +258,34 @@ public class EmployeeControllerTest {
 
     }
 
+    @Test
+    public void testSearchEmployeeById_Success() throws Exception{
+        //Prepare request
+        Long id = 10L;
+
+        //Prepare expected response dto
+        EmployeeResponseDto employeeResponseDto = new EmployeeResponseDto(
+                10L,
+                "Sachin",
+                888888,
+                "Cricket",
+                "sachin@gmail.com"
+        );
+
+        //Mock service behavior
+        when(employeeService.searchEmployeeById(anyLong())).thenReturn(employeeResponseDto);
+
+        //Perform GET request
+        mockMvc.perform(get("/api/employees/searchEmployeeById").queryParam("id", String.valueOf(id)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.name").value("Sachin"));
+
+        //Verify the service was called once
+        verify(employeeService, times(1)).searchEmployeeById(anyLong());
+
+    }
+
 
 
 }
