@@ -1,6 +1,7 @@
 package com.example.EMS.controller;
 
 import com.example.EMS.exceptions.DuplicateEmailException;
+import com.example.EMS.exceptions.ResourceNotFoundException;
 import com.example.EMS.model.dto.EmployeeRequestDto;
 import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.service.EmployeeService;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.print.attribute.standard.Media;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -163,18 +165,26 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    public void testAddEmployees_ValidationFailure() throws Exception{
+    public void testAddEmployees_ServiceThrowsException() throws Exception{
 
         //Prepare request dto
-        List<EmployeeRequestDto> employeeRequestDtoList = List.of(
-                new EmployeeRequestDto("Sachin", 888888, "Cricket", "sachin@gmail.com"),
-                new EmployeeRequestDto("", 555555, "Cricket", "virat@gmail.com")
-        );
+        List<EmployeeRequestDto> employeeRequestDtoList = List.of();
 
+        //Mock service behavior
+        when(employeeService.addEmployees(anyList())).thenThrow(new ResourceNotFoundException("Input request is empty"));
+
+        //Perform POST request
+        mockMvc.perform(post("/api/employees/addEmployees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(employeeRequestDtoList)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("shortSummaryMessage").value("Resource Not Found"))
+                .andExpect(jsonPath("$.errorList").isArray())
+                .andExpect(jsonPath("$.errorList").isNotEmpty())
+                .andExpect(jsonPath("$.errorList[0]").value(containsString("is empty")));
+
+        //verify the service was called once
+        verify(employeeService, times(1)).addEmployees(anyList());
 
     }
-
-
-
-
 }
