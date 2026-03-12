@@ -5,6 +5,8 @@ import com.example.EMS.model.dto.EmployeeRequestDto;
 import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.service.EmployeeService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Positive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -90,5 +92,20 @@ public class EmployeeController {
 
     }
 
+    @GetMapping("searchEmployees")
+    ResponseEntity<List<EmployeeResponseDto>> searchEmployees(
+            @RequestParam (name = "name", required = false) String name,
+            @Positive(message = "minSalary must be greater than 0") @RequestParam (name="minSalary", required = false) Integer salary,
+            @RequestParam (name="department", required = false) String department,
+            @Email(message = "email id must be in valid format") @RequestParam (name = "email", required = false) String email){
+
+        logger.info("searchEmployees, name is {}, salary is {}, department is {}, email is {}", name, salary, department, email);
+
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeService.searchEmployees(name, salary, department, email);
+        logger.info("searchEmployees, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        return ResponseEntity.ok(employeeResponseDtoList);
+
+    }
 
 }

@@ -8,12 +8,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +86,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
-                "Validation failed",
+                "Constraint Validation failed",
                 errorList,
                 LocalDateTime.now()
         );
@@ -121,5 +124,31 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    //eg. @Positive(message = "minSalary must be greater than 0") @RequestParam (name="minSalary", required = false) int salary falls in global error
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    ResponseEntity<ErrorResponse> handleHandlerMethodValidationException(HandlerMethodValidationException e){
+
+        List<String> errorList = new ArrayList<>();
+
+        e.getAllErrors().forEach(err->{
+            if(err instanceof FieldError fieldError){
+                errorList.add(fieldError.getField() + " : " +fieldError.getDefaultMessage());
+            }else{
+                //Rare global error
+                errorList.add("global : "+err.getDefaultMessage());
+            }
+        });
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Handler Method Validation Failed",
+                errorList,
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
 
 }

@@ -15,10 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateProperties;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -162,6 +161,47 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return employeeResponseDto;
 
+    }
+
+    @Override
+    public List<EmployeeResponseDto> searchEmployees(String name, Integer salary, String department, String email){
+        logger.info("searchEmployees, name is {}, salary is {}, department is {}, email is {}", name, salary, department, email);
+
+        //Create employee list stream
+        Stream<Employee> employeeListStream = employeeRepository.findAll().stream();
+
+        if(name !=null && !name.isBlank()){
+            logger.info("searchEmployees, inside name !=null, name is {}", name);
+            employeeListStream = employeeListStream.filter(emp -> emp.getName().toLowerCase().contains(name.trim().toLowerCase()));
+        }
+
+        //minSalary
+        if(salary !=null){
+            logger.info("searchEmployees, inside salary !=null, salary is {}", salary);
+            employeeListStream = employeeListStream.filter(emp -> emp.getSalary() >= salary);
+        }
+
+        if(department !=null && !department.isBlank()){
+            logger.info("searchEmployees, inside department !=null, department is {}", department);
+            employeeListStream = employeeListStream.filter(emp -> emp.getDepartment().equalsIgnoreCase(department));
+        }
+
+        if(email !=null && !email.isBlank()){
+            logger.info("searchEmployees, inside email !=null, email is {}", email);
+            employeeListStream = employeeListStream.filter(emp -> emp.getEmail().equalsIgnoreCase(email));
+        }
+
+        List<Employee> employeeList = employeeListStream.collect(Collectors.toList());
+        logger.info("searchEmployees, employeeList is {}", employeeList);
+
+        //Map employee to employee response dto
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeList.stream()
+                .filter(Objects::nonNull)
+                .map(emp -> modelMapper.map(emp, EmployeeResponseDto.class))
+                .toList();
+        logger.info("searchEmployees, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        return employeeResponseDtoList;
     }
 
 

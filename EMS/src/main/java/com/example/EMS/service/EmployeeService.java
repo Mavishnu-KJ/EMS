@@ -14,5 +14,6 @@ public interface EmployeeService {
     List<EmployeeResponseDto> getAllEmployees();
 
     EmployeeResponseDto searchEmployeeById(Long id);
+    List<EmployeeResponseDto> searchEmployees(String name, Integer salary, String department, String email);
 
 }
