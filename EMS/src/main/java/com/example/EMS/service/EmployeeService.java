@@ -19,4 +19,6 @@ public interface EmployeeService {
     EmployeeResponseDto updateEmployeeById(EmployeeRequestDto employeeRequestDto, Long id);
     List<EmployeeResponseDto> updateEmployeeByName(EmployeeRequestDto employeeRequestDto, String name);
 
+    void deleteEmployeeById(Long id);
+
 }

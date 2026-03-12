@@ -132,5 +132,14 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeResponseDtoList);
     }
 
+    @DeleteMapping("deleteEmployeeById/{id}")
+    ResponseEntity<HttpStatus> deleteEmployeeById(@PathVariable(name = "id") Long id){
+        logger.info("deleteEmployeeById, id is {}", id);
+
+        employeeService.deleteEmployeeById(id); //delete returns void
+
+        return ResponseEntity.noContent().build(); //204 no content
+    }
+
 
 }
