@@ -204,5 +204,70 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeResponseDtoList;
     }
 
+    @Override
+    @Transactional
+    public EmployeeResponseDto updateEmployeeById(EmployeeRequestDto employeeRequestDto, Long id){
+        logger.info("updateEmployeeById, employeeRequestDto is {}, id is {}", employeeRequestDto, id);
+
+        //find the employee
+        Employee existingEmployee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found for the given id : "+id));
+
+        logger.info("updateEmployeeById, existingEmployee is {}", existingEmployee);
+
+        //Update existingEmployee
+        existingEmployee.setName(employeeRequestDto.getName());
+        existingEmployee.setSalary(employeeRequestDto.getSalary());
+        existingEmployee.setDepartment(employeeRequestDto.getDepartment());
+        existingEmployee.setEmail(employeeRequestDto.getEmail());
+
+        logger.info("updateEmployeeById, existingEmployee with updated values is {}", existingEmployee);
+
+        //save
+        Employee updatedEmployee = employeeRepository.save(existingEmployee);
+        logger.info("updateEmployeeById, updatedEmployee is {}", updatedEmployee);
+
+        //Map employee to employee response dto
+        return modelMapper.map(updatedEmployee, EmployeeResponseDto.class);
+    }
+
+    @Override
+    @Transactional
+    public List<EmployeeResponseDto> updateEmployeeByName(EmployeeRequestDto employeeRequestDto, String name) {
+        logger.info("updateEmployeeByName, employeeRequestDto is {}, name is {}", employeeRequestDto, name);
+
+        List<Employee> exisingEmployeeList = employeeRepository.findByName(name); //exact match case sensitive, not contains
+        logger.info("updateEmployeeByName, exisingEmployeeList is {}", exisingEmployeeList);
+
+        if(exisingEmployeeList == null || exisingEmployeeList.isEmpty()){
+            throw new ResourceNotFoundException("Resource not found for the name : "+name);
+        }
+
+        //Update exisingEmployeeList with given values
+        List<Employee> updatedEmployeeList = new ArrayList<>();
+
+        for (Employee existingEmployee : exisingEmployeeList) {
+
+            existingEmployee.setName(employeeRequestDto.getName());
+            existingEmployee.setSalary(employeeRequestDto.getSalary());
+            existingEmployee.setDepartment(employeeRequestDto.getDepartment());
+            existingEmployee.setEmail(employeeRequestDto.getEmail());
+
+            updatedEmployeeList.add(existingEmployee);
+        }
+        logger.info("updateEmployeeByName, updatedEmployeeList updated is {}", updatedEmployeeList);
+
+        //Save
+        List<Employee> savedEmployeeList = employeeRepository.saveAll(updatedEmployeeList);
+        logger.info("updateEmployeeByName, updatedEmployeeList updated is {}", updatedEmployeeList);
+
+        //Map employee to employeeResponseDto
+        List<EmployeeResponseDto> employeeResponseDtoList = savedEmployeeList.stream()
+                .map(emp -> modelMapper.map(emp, EmployeeResponseDto.class))
+                .toList();
+
+        return employeeResponseDtoList;
+    }
+
 
 }

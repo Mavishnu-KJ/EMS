@@ -108,4 +108,29 @@ public class EmployeeController {
 
     }
 
+    @PutMapping("updateEmployeeById/{id}")
+    ResponseEntity<EmployeeResponseDto> updateEmployeeById(@Valid @RequestBody EmployeeRequestDto employeeRequestDto, @PathVariable("id") Long id){
+        logger.info("updateEmployeeById, employeeRequestDto is {}, id is {}", employeeRequestDto, id);
+
+        EmployeeResponseDto updated = employeeService.updateEmployeeById(employeeRequestDto, id);
+        logger.info("updateEmployeeById, updated is {}", updated);
+
+        return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("updateEmployeeByName/{name}")
+    ResponseEntity<List<EmployeeResponseDto>> updateEmployeeByName(@Valid @RequestBody EmployeeRequestDto employeeRequestDto, @PathVariable("name") String name){
+        logger.info("updateEmployeeByName, employeeRequestDto is {}, name is {}", employeeRequestDto, name);
+
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeService.updateEmployeeByName(employeeRequestDto, name);
+        logger.info("updateEmployeeByName, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        if(employeeResponseDtoList == null || employeeResponseDtoList.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(employeeResponseDtoList);
+    }
+
+
 }

@@ -16,4 +16,7 @@ public interface EmployeeService {
     EmployeeResponseDto searchEmployeeById(Long id);
     List<EmployeeResponseDto> searchEmployees(String name, Integer salary, String department, String email);
 
+    EmployeeResponseDto updateEmployeeById(EmployeeRequestDto employeeRequestDto, Long id);
+    List<EmployeeResponseDto> updateEmployeeByName(EmployeeRequestDto employeeRequestDto, String name);
+
 }
