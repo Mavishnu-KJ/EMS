@@ -13,6 +13,9 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateProperties;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -281,6 +284,156 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //delete
         employeeRepository.delete(existingEmployee); // delete returns void
+    }
+
+    @Override
+    public Page<EmployeeResponseDto> getAllEmployeesWithPagination(Pageable pageable){
+        logger.info("getAllEmployeesWithPagination, pageable is {}", pageable);
+
+        //Fetch all employees with pagination
+        Page<Employee> employeePage = employeeRepository.findAll(pageable);
+        logger.info("getAllEmployeesWithPagination, employeePage is {}", employeePage);
+
+        //Map employee page to employee response dto
+        //Convert Page<Employee> → Page<EmployeeResponseDto> while keeping pagination info
+        //Use map on the Page object itself, Spring Data provides a built-in method for this
+        //Don't use stream(), toList()
+        Page<EmployeeResponseDto> employeeResponseDtoPage = employeePage
+                .map(emp -> modelMapper.map(emp, EmployeeResponseDto.class)); //Same wil work with manual mapping as well
+
+        logger.info("getAllEmployeesWithPagination, employeeResponseDtoPage is {}", employeeResponseDtoPage);
+
+        return employeeResponseDtoPage;
+    }
+
+    @Override
+    public Page<EmployeeResponseDto> searchEmployeesWithPagination(String name, Integer salary, String department, String email, Pageable pageable){
+        logger.info("searchEmployeesWithPagination, pageable is {}", pageable);
+
+        //The below code actually form a sql like Select * from Employee where 1=1
+        Specification<Employee> specification = Specification.where(null); //deprecated, still using this for better understanding
+        //logger.info("searchEmployeesWithPagination, specification is {}", specification);
+        //Commented the above line, because that won't print any useful data
+
+        //add specific conditions
+
+        //name
+        if(name != null && !name.isBlank()){
+            logger.info("searchEmployeesWithPagination, name is {}", name);
+            //and for AND, or for OR in the SQL
+            specification = specification.and(
+                    (root, query, cb) ->
+                            cb.like(cb.lower(root.get("name")), "%"+name.toLowerCase()+"%")
+                            //NOTE : We cannot use toLowerCase() with root. So we used cb.lower(root.get("name"))
+                    );
+        }
+
+        //minSalary
+        if(salary != null){
+            logger.info("searchEmployeesWithPagination, salary is {}", salary);
+            specification = specification.and(
+                    (root, query, cb)->
+                            cb.greaterThanOrEqualTo(root.get("salary"), salary)
+            );
+        }
+
+        //department
+        if(department != null && !department.isBlank()){
+            logger.info("searchEmployeesWithPagination, department is {}", department);
+
+            specification = specification.and(
+                    (root, query, cb) ->
+                            cb.equal(root.get("department"), department)
+            );
+        }
+
+        //email
+        if(email != null && !email.isBlank()){
+            logger.info("searchEmployeesWithPagination, email is {}", email);
+
+            specification = specification.and(
+                    (root, query, cb) ->
+                            cb.equal(cb.lower(root.get("email")), email.toLowerCase())
+            );
+        }
+
+        //logger.info("searchEmployeesWithPagination, after adding conditions, specification is {}", specification);
+        //Commented the above line, because that won't print any useful data
+
+        //Fetch data from repository
+        Page<Employee> employeePage = employeeRepository.findAll(specification, pageable);
+        logger.info("searchEmployeesWithPagination, employeePage is {}", employeePage);
+
+        //Map employee page to employee response dto page
+        Page<EmployeeResponseDto> employeeResponseDtoPage = employeePage
+                .map(emp -> modelMapper.map(emp, EmployeeResponseDto.class));
+        logger.info("searchEmployeesWithPagination, employeeResponseDtoPage is {}", employeeResponseDtoPage);
+
+        return employeeResponseDtoPage;
+    }
+
+    @Override
+    public Page<EmployeeResponseDto> searchEmployeesWithPagination1(String name, Integer salary, String department, String email, Pageable pageable){
+        logger.info("searchEmployeesWithPagination1, pageable is {}", pageable);
+
+        //Since, the Specification.where(null) is deprecated, we are using the below approach
+        List<Specification<Employee>> specificationList = new ArrayList<>();
+
+        //add specific conditions
+        if(name != null && !name.isBlank()){
+            logger.info("searchEmployeesWithPagination1, name is {}", name);
+            //and for AND, or for OR in the SQL
+            specificationList.add(
+                    (root, query, cb) ->
+                            cb.like(cb.lower(root.get("name")), "%"+name.toLowerCase()+"%")
+                    //NOTE : We cannot use toLowerCase() with root. So we used cb.lower(root.get("name"))
+            );
+        }
+
+        //minSalary
+        if(salary != null){
+            logger.info("searchEmployeesWithPagination1, salary is {}", salary);
+            specificationList.add(
+                    (root, query, cb)->
+                            cb.greaterThanOrEqualTo(root.get("salary"), salary)
+            );
+        }
+
+        //department
+        if(department != null && !department.isBlank()){
+            logger.info("searchEmployeesWithPagination1, department is {}", department);
+
+            specificationList.add(
+                    (root, query, cb) ->
+                            cb.equal(root.get("department"), department)
+            );
+        }
+
+        //email
+        if(email != null && !email.isBlank()){
+            logger.info("searchEmployeesWithPagination1, email is {}", email);
+
+            specificationList.add(
+                    (root, query, cb) ->
+                            cb.equal(cb.lower(root.get("email")), email.toLowerCase())
+            );
+        }
+
+        //Combine the specification conditions
+        //Specification.allOf(specificationList) for AND
+        //specificationList.anyOf(specificationList) for OR
+        Specification<Employee> specification = Specification.allOf(specificationList);
+
+        //Fetch data from repository
+        Page<Employee> employeePage = employeeRepository.findAll(specification, pageable);
+        logger.info("searchEmployeesWithPagination1, employeePage is {}", employeePage);
+
+        //Map employee page to employee response dto page
+        Page<EmployeeResponseDto> employeeResponseDtoPage = employeePage
+                .map(emp -> modelMapper.map(emp, EmployeeResponseDto.class));
+        logger.info("searchEmployeesWithPagination1, employeeResponseDtoPage is {}", employeeResponseDtoPage);
+
+        return employeeResponseDtoPage;
     }
 
 
