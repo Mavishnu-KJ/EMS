@@ -337,11 +337,16 @@ public class EmployeeControllerTest {
 
     @Test
     void testSearchEmployeesWithPagination1_ValidationFailure() throws Exception {
+
+        //Perform
         // If you have @Min validation on salary in DTO, Spring will throw MethodArgumentNotValidException or HandlerMethodValidationException
         mockMvc.perform(get("/api/employees/searchEmployeesWithPagination1")
                         .param("minSalary", "-5000")
                         .param("name", "Sachin"))
                 .andExpect(status().isBadRequest());
+
+        //Verify the service was never called
+        verify(employeeService, never()).searchEmployeesWithPagination1(any(), any(), any(), any(), any(Pageable.class));
     }
 
 
