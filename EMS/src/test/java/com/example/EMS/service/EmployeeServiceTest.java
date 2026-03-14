@@ -11,6 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
@@ -243,6 +248,30 @@ public class EmployeeServiceTest {
         verify(employeeRepository).findById(anyLong());
         verify(modelMapper, never()).map(employee, EmployeeResponseDto.class);
 
+    }
+
+    @Test
+    void testSearchEmployeesWithPagination1_NameFilter_ReturnsMatching() {
+        //Prepare request
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Employee> content = List.of(employee);
+        Page<Employee> employeePage = new PageImpl<>(content, pageable, 1);
+
+        when(employeeRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(employeePage);
+        when(modelMapper.map(employee, EmployeeResponseDto.class)).thenReturn(employeeResponseDto);
+
+        //Perform
+        Page<EmployeeResponseDto> result = employeeService.searchEmployeesWithPagination1(
+                "Sachin", null, null, null, pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("Sachin");
+
+        //Verify
+        verify(employeeRepository).findAll(any(Specification.class), any(Pageable.class));
+
+        // NOTE : We can use eq(pageable) instead of any(Pageable.class)
     }
 
 

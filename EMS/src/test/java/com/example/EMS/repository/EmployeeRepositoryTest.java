@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -137,6 +141,30 @@ public class EmployeeRepositoryTest {
         assertThat(foundEmployee2.get().getName()).isEqualTo("Rohit");
         assertThat(foundEmployee2.get().getId()).isEqualTo(savedEmployee2.getId()); // verify ID match
 
+    }
+
+    @Test
+    void testFindAll_WithNameFilter_ShouldReturnMatchingEmployees() {
+        // Given - insert test data
+        testEntityManager.persist(new Employee(null, "Sachin Tendulkar", 900000, "Cricket", "sachin@test.com"));
+        testEntityManager.persist(new Employee(null, "Virat Kohli", 555555, "Cricket", "virat@test.com"));
+        testEntityManager.persist(new Employee(null, "Rohit Sharma", 800000, "Cricket", "rohit@test.com"));
+        testEntityManager.flush();
+
+        // Specification for name containing "Tendulkar" (case-insensitive)
+        Specification<Employee> spec = (root, query, cb) ->
+                cb.like(cb.lower(root.get("name")), "%tendulkar%");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<Employee> result = employeeRepository.findAll(spec, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("Sachin Tendulkar");
+        assertThat(result.getContent().get(0).getEmail()).isEqualTo("sachin@test.com");
     }
 
 
