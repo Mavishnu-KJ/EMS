@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.print.attribute.standard.Media;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -296,10 +295,10 @@ public class EmployeeControllerTest {
     public void testSearchEmployeesWithPagination1_Success() throws Exception{
         //Prepare request Dto
         Pageable pageable = PageRequest.of(0, 5);
-        MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-        queryParamMap.add("name", "Sachin");
-        queryParamMap.add("page", "0");
-        queryParamMap.add("size", "5");
+        MultiValueMap<String, String> queryParamMultiValueMap = new LinkedMultiValueMap<>();
+        queryParamMultiValueMap.add("name", "Sachin");
+        queryParamMultiValueMap.add("page", "0");
+        queryParamMultiValueMap.add("size", "5");
 
         //Prepare expected ResponseDto
         List<EmployeeResponseDto> employeeResponseDtoList = List.of(
@@ -317,7 +316,7 @@ public class EmployeeControllerTest {
 
         //Perform GET request
         mockMvc.perform(get("/api/employees/searchEmployeesWithPagination1")
-                        .queryParams(queryParamMap)
+                        .queryParams(queryParamMultiValueMap)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
