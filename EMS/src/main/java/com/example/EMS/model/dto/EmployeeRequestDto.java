@@ -2,16 +2,17 @@ package com.example.EMS.model.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public class EmployeeRequestDto {
 
     @NotBlank
     private String name;
-    @Positive(message = "salary must be greater than 0")
+    @NotNull @Positive(message = "salary must be greater than 0")
     private int salary;
     private String department;
-    @Email
+    @NotBlank @Email
     private String email;
 
     public EmployeeRequestDto(){

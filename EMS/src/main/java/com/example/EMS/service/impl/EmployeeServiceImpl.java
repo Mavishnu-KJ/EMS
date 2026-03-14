@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -114,6 +115,66 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return employeeResponseDtoList;
 
+    }
+
+    @Override
+    @Transactional
+    public List<EmployeeResponseDto> addEmployees1(List<EmployeeRequestDto> employeeRequestDtoList){
+        logger.info("addEmployees1, employeeRequestDtoList is {}", employeeRequestDtoList);
+
+        if(employeeRequestDtoList == null || employeeRequestDtoList.isEmpty()){
+            throw new ResourceNotFoundException("Resource not found, employeeRequestDtoList : "+employeeRequestDtoList);
+        }
+
+        //Duplicate email check - start
+
+        //1. Ensure there is no duplicate email in the request itself
+        //NOTE : Bean validation annotations in the EmployeeRequestDto will take care of not null, not blank checks
+        List<String> emailListInTheRequest = employeeRequestDtoList.stream()
+                .map(EmployeeRequestDto::getEmail)
+                .toList();
+        logger.info("addEmployees1, emailListInTheRequest is {}", emailListInTheRequest);
+
+        HashSet<String> seenEmailSet = new HashSet<>(); //HashSet does not allow duplicate keys, So preferred HashSet
+        ArrayList<String> duplicateEmailListInTheRequest = new ArrayList<>();
+
+        emailListInTheRequest.forEach(email -> {
+            if(!seenEmailSet.add(email)){ // add method returns true on successful addition, else false
+                duplicateEmailListInTheRequest.add(email);
+            }
+        });
+        logger.info("addEmployees1, duplicateEmailListInTheRequest is {}", duplicateEmailListInTheRequest);
+
+        if(!duplicateEmailListInTheRequest.isEmpty()){
+            throw new DuplicateEmailException("Email already exists in the request itself : "+duplicateEmailListInTheRequest);
+        }
+
+        //2. Ensure there is no duplicate email by comparing with the existing mails in the DB
+        List<String> duplicateEmailList = employeeRepository.duplicateEmailList(emailListInTheRequest);
+        logger.info("addEmployees1, duplicateEmailList is {}", duplicateEmailList);
+
+        if(!duplicateEmailList.isEmpty()){
+            throw new DuplicateEmailException("Email already exists in the DB : "+duplicateEmailList);
+        }
+
+        //Map employee request dto to employee
+        List<Employee> employeeList = employeeRequestDtoList.stream()
+                .map(empDto -> modelMapper.map(empDto, Employee.class))
+                .toList();
+        logger.info("addEmployees1, employeeList is {}", employeeList);
+
+        //Save
+        List<Employee> savedEmployeeList = employeeRepository.saveAll(employeeList);
+        logger.info("addEmployees1, savedEmployeeList is {}", savedEmployeeList);
+
+        //Map employee to employee response dto
+        List<EmployeeResponseDto> employeeResponseDtoList = savedEmployeeList.stream()
+                .map(emp -> modelMapper.map(emp, EmployeeResponseDto.class))
+                .toList();
+
+        logger.info("addEmployees1, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        return employeeResponseDtoList;
     }
 
     @Override

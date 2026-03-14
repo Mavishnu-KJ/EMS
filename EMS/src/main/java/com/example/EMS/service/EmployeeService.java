@@ -11,6 +11,7 @@ public interface EmployeeService {
 
     EmployeeResponseDto addEmployee(EmployeeRequestDto employeeRequestDto);
     List<EmployeeResponseDto> addEmployees(List<EmployeeRequestDto> employeeRequestDtoList);
+    List<EmployeeResponseDto> addEmployees1(List<EmployeeRequestDto> employeeRequestDtoList);
 
     EmployeeResponseDto getEmployeeById(Long id);
     List<EmployeeResponseDto> getAllEmployees();

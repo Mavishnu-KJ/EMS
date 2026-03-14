@@ -64,6 +64,25 @@ public class EmployeeController {
         return ResponseEntity.created(location).body(employeeResponseDtoList);
     }
 
+    //This endpoint functionality is same of /addEmployees only the difference is duplicate email check
+    //This endpoint is mainly to demonstrate the @Query annotated repository method
+    @PostMapping("/addEmployees1")
+    ResponseEntity<List<EmployeeResponseDto>> addEmployees1(@Valid @RequestBody List< @Valid EmployeeRequestDto> employeeRequestDtoList){
+        logger.info("addEmployees1, employeeRequestDtoList is {}", employeeRequestDtoList);
+
+        List<EmployeeResponseDto> employeeResponseDtoList = employeeService.addEmployees1(employeeRequestDtoList);
+        logger.info("addEmployees1, employeeResponseDtoList is {}", employeeResponseDtoList);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .build()
+                .toUri();
+        logger.info("addEmployees1, location is {}", location);
+
+        return ResponseEntity.created(location).body(employeeResponseDtoList);
+    }
+
+
     @GetMapping("/{id}") //http://localhost:8080/api/employees/12
     ResponseEntity<EmployeeResponseDto> getEmployeeById(@PathVariable("id") Long id){
         logger.info("getEmployeeById, id is {}", id);
