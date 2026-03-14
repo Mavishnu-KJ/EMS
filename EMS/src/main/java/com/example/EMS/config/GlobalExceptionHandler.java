@@ -150,5 +150,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    //For other unhandled exceptions
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<ErrorResponse> handleGenericErrors(Exception e){
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "INTERNAL SERVER ERROR",
+                List.of("Unexpected error : "+e.getMessage()),
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 }
