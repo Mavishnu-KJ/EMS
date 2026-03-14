@@ -6,6 +6,7 @@ import com.example.EMS.model.dto.EmployeeResponseDto;
 import com.example.EMS.service.EmployeeService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -201,7 +202,7 @@ public class EmployeeController {
     @GetMapping("/searchEmployeesWithPagination1")
     ResponseEntity<Page<EmployeeResponseDto>> searchEmployeesWithPagination1(
             @RequestParam(name = "name", required = false) String name,
-            @RequestParam(name = "minSalary", required = false) Integer salary,
+            @Min(value = 0) @RequestParam(name = "minSalary", required = false) Integer salary,
             @RequestParam(name = "department", required = false) String department,
             @RequestParam(name = "email", required = false) String email,
             Pageable pageable //default : page : 0, size : 20, sort : UNSORTED

@@ -10,9 +10,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import javax.print.attribute.standard.Media;
 import java.util.List;
@@ -284,6 +290,59 @@ public class EmployeeControllerTest {
         //Verify the service was called once
         verify(employeeService, times(1)).searchEmployeeById(anyLong());
 
+    }
+
+    @Test
+    public void testSearchEmployeesWithPagination1_Success() throws Exception{
+        //Prepare request Dto
+        Pageable pageable = PageRequest.of(0, 5);
+        MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
+        queryParamMap.add("name", "Sachin");
+        queryParamMap.add("page", "0");
+        queryParamMap.add("size", "5");
+
+        //Prepare expected ResponseDto
+        List<EmployeeResponseDto> employeeResponseDtoList = List.of(
+                new EmployeeResponseDto(1L, "Sachin Tendulkar", 888888, "Cricket", "sachinTendulkar@gmail.com"),
+                new EmployeeResponseDto(2L, "Sachin", 888888, "Cricket", "sachin@gmail.com"),
+                new EmployeeResponseDto(3L, "Sachin", 999999, "Cricket", "sachin1@gmail.com")
+        );
+
+        Page<EmployeeResponseDto> employeeResponseDtoPage = new PageImpl<>(employeeResponseDtoList, pageable, 3);
+
+        //Mock service behavior
+        when(employeeService.searchEmployeesWithPagination1(
+                any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(employeeResponseDtoPage);
+
+        //Perform GET request
+        mockMvc.perform(get("/api/employees/searchEmployeesWithPagination1")
+                        .queryParams(queryParamMap)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content").isNotEmpty())
+                .andExpect(jsonPath("$.content[0].name").value("Sachin Tendulkar"))
+                .andExpect(jsonPath("$.content[1].name").value("Sachin"))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(5));
+
+
+        //Verify the service was called once
+        verify(employeeService, times(1)).searchEmployeesWithPagination1(
+                anyString(), any(), any(), any(), any(Pageable.class)
+        );
+    }
+
+    @Test
+    void testSearchEmployeesWithPagination1_ValidationFailure() throws Exception {
+        // If you have @Min validation on salary in DTO, Spring will throw MethodArgumentNotValidException or HandlerMethodValidationException
+        mockMvc.perform(get("/api/employees/searchEmployeesWithPagination1")
+                        .param("minSalary", "-5000")
+                        .param("name", "Sachin"))
+                .andExpect(status().isBadRequest());
     }
 
 
