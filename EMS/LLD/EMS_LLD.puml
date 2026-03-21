@@ -1,0 +1,164 @@
+@startuml
+class com.example.EMS.service.impl.EmployeeServiceImpl {
+- {static} Logger logger
+- EmployeeRepository employeeRepository
+- ModelMapper modelMapper
++ EmployeeResponseDto addEmployee(EmployeeRequestDto)
++ List<EmployeeResponseDto> addEmployees(List<EmployeeRequestDto>)
++ List<EmployeeResponseDto> addEmployees1(List<EmployeeRequestDto>)
++ EmployeeResponseDto getEmployeeById(Long)
++ List<EmployeeResponseDto> getAllEmployees()
++ EmployeeResponseDto searchEmployeeById(Long)
++ List<EmployeeResponseDto> searchEmployees(String,Integer,String,String)
++ EmployeeResponseDto updateEmployeeById(EmployeeRequestDto,Long)
++ List<EmployeeResponseDto> updateEmployeeByName(EmployeeRequestDto,String)
++ void deleteEmployeeById(Long)
++ Page<EmployeeResponseDto> getAllEmployeesWithPagination(Pageable)
++ Page<EmployeeResponseDto> searchEmployeesWithPagination(String,Integer,String,String,Pageable)
++ Page<EmployeeResponseDto> searchEmployeesWithPagination1(String,Integer,String,String,Pageable)
+}
+
+
+interface com.example.EMS.repository.EmployeeRepository {
+~ boolean existsByEmail(String)
+~ List<Employee> findByName(String)
+~ List<String> duplicateEmailList(List<String>)
+~ Page<Employee> findAll(Specification<Employee>,Pageable)
+}
+
+class com.example.EMS.controller.EmployeeController {
+- {static} Logger logger
+- EmployeeService employeeService
+~ ResponseEntity<EmployeeResponseDto> addEmployee(EmployeeRequestDto)
+~ ResponseEntity<List<EmployeeResponseDto>> addEmployees(List<EmployeeRequestDto>)
+~ ResponseEntity<List<EmployeeResponseDto>> addEmployees1(List<EmployeeRequestDto>)
+~ ResponseEntity<EmployeeResponseDto> getEmployeeById(Long)
+~ ResponseEntity<List<EmployeeResponseDto>> getAllEmployees()
+~ ResponseEntity<EmployeeResponseDto> searchEmployeeById(Long)
+~ ResponseEntity<List<EmployeeResponseDto>> searchEmployees(String,Integer,String,String)
+~ ResponseEntity<EmployeeResponseDto> updateEmployeeById(EmployeeRequestDto,Long)
+~ ResponseEntity<List<EmployeeResponseDto>> updateEmployeeByName(EmployeeRequestDto,String)
+~ ResponseEntity<HttpStatus> deleteEmployeeById(Long)
+~ ResponseEntity<Page<EmployeeResponseDto>> getAllEmployeesWithPagination(Pageable)
+~ ResponseEntity<Page<EmployeeResponseDto>> searchEmployeesWithPagination(String,Integer,String,String,Pageable)
+~ ResponseEntity<Page<EmployeeResponseDto>> searchEmployeesWithPagination1(String,Integer,String,String,Pageable)
+}
+
+
+class com.example.EMS.model.dto.ErrorResponse {
+- int statusCode
+- String shortSummaryMessage
+- List<String> errorList
+- LocalDateTime timeStamp
++ List<String> errorList()
++ int statusCode()
++ LocalDateTime timeStamp()
++ String shortSummaryMessage()
+}
+
+
+class com.example.EMS.config.ModelMapperConfig {
++ ModelMapper modelMapper()
+}
+
+class com.example.EMS.config.GlobalExceptionHandler {
+~ ResponseEntity<ErrorResponse> handleDuplicateEmailException(DuplicateEmailException)
+~ ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException)
+~ ResponseEntity<ErrorResponse> handleBindException(BindException)
+~ ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException)
+~ ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException)
+~ ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException)
+~ ResponseEntity<ErrorResponse> handleHandlerMethodValidationException(HandlerMethodValidationException)
+~ ResponseEntity<ErrorResponse> handleGenericErrors(Exception)
+}
+
+class com.example.EMS.model.dto.EmployeeResponseDto {
+- long id
+- String name
+- int salary
+- String department
+- String email
++ long getId()
++ void setId(long)
++ String getName()
++ void setName(String)
++ int getSalary()
++ void setSalary(int)
++ String getDepartment()
++ void setDepartment(String)
++ String getEmail()
++ void setEmail(String)
++ String toString()
+}
+
+
+class com.example.EMS.config.DataBaseHealthIndicator {
+}
+class com.example.EMS.exceptions.DuplicateEmailException {
+}
+interface com.example.EMS.service.EmployeeService {
+~ EmployeeResponseDto addEmployee(EmployeeRequestDto)
+~ List<EmployeeResponseDto> addEmployees(List<EmployeeRequestDto>)
+~ List<EmployeeResponseDto> addEmployees1(List<EmployeeRequestDto>)
+~ EmployeeResponseDto getEmployeeById(Long)
+~ List<EmployeeResponseDto> getAllEmployees()
+~ EmployeeResponseDto searchEmployeeById(Long)
+~ List<EmployeeResponseDto> searchEmployees(String,Integer,String,String)
+~ EmployeeResponseDto updateEmployeeById(EmployeeRequestDto,Long)
+~ List<EmployeeResponseDto> updateEmployeeByName(EmployeeRequestDto,String)
+~ void deleteEmployeeById(Long)
+~ Page<EmployeeResponseDto> getAllEmployeesWithPagination(Pageable)
+~ Page<EmployeeResponseDto> searchEmployeesWithPagination(String,Integer,String,String,Pageable)
+~ Page<EmployeeResponseDto> searchEmployeesWithPagination1(String,Integer,String,String,Pageable)
+}
+
+class com.example.EMS.model.entity.Employee {
+- Long id
+- String name
+- int salary
+- String department
+- String email
++ Long getId()
++ void setId(Long)
++ String getName()
++ void setName(String)
++ int getSalary()
++ void setSalary(int)
++ String getDepartment()
++ void setDepartment(String)
++ String getEmail()
++ void setEmail(String)
++ String toString()
+}
+
+
+class com.example.EMS.exceptions.ResourceNotFoundException {
+}
+class com.example.EMS.model.dto.EmployeeRequestDto {
+- String name
+- int salary
+- String department
+- String email
++ String getName()
++ void setName(String)
++ int getSalary()
++ void setSalary(int)
++ String getDepartment()
++ void setDepartment(String)
++ String getEmail()
++ void setEmail(String)
++ String toString()
+}
+
+
+class com.example.EMS.EmsApplication {
++ {static} void main(String[])
+}
+
+
+
+com.example.EMS.service.EmployeeService <|.. com.example.EMS.service.impl.EmployeeServiceImpl
+org.springframework.data.jpa.repository.JpaRepository <|-- com.example.EMS.repository.EmployeeRepository
+com.example.EMS.exceptions.RuntimeException <|-- com.example.EMS.exceptions.DuplicateEmailException
+com.example.EMS.exceptions.RuntimeException <|-- com.example.EMS.exceptions.ResourceNotFoundException
+@enduml
