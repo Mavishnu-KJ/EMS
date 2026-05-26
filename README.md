@@ -11,7 +11,6 @@ A **full-featured RESTful API** built with Spring Boot for managing employees. I
 - Bean Validation (`@Valid`, `@NotBlank`, `@Positive`, `@Email`)
 - Global exception handling with custom error responses
 - Actuator endpoints for monitoring (health, info, metrics)
-- Manual mapping (no external mapper library issues)
 
 ## Tech Stack
 - Java 17 / 25
